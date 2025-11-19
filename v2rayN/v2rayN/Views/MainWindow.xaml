@@ -248,7 +248,7 @@
                             </MenuItem>
                         </Menu>
                         <Separator />
-                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
+                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}" Visibility="Collapsed">
                             <MenuItem
                                 x:Name="menuHelp"
                                 Padding="{StaticResource MarginLeftRight8}"
@@ -267,7 +267,7 @@
                             </MenuItem>
                         </Menu>
                         <Separator />
-                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}">
+                        <Menu Margin="0,1" Style="{StaticResource ToolbarMenu}" Visibility="Collapsed">
                             <MenuItem
                                 x:Name="menuPromotion"
                                 Padding="{StaticResource MarginLeftRight8}"
