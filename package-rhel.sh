@@ -174,6 +174,17 @@ fi
 # ===== Resolve GUI version & auto checkout ============================================
 VERSION=""
 
+# Helper function to sanitize version for RPM (only numbers, dots, and underscores)
+sanitize_rpm_version() {
+  local ver="$1"
+  # Remove leading v/V
+  ver="${ver#[vV]}"
+  # Convert first hyphen to underscore, rest to dots
+  # v7.16.3-no-ad becomes 7.16.3_no.ad
+  ver=$(echo "$ver" | sed 's/-/_/1' | sed 's/-/./g')
+  echo "$ver"
+}
+
 choose_channel() {
   # If --buildfrom provided, map it directly and skip interaction.
   if [[ -n "${BUILD_FROM:-}" ]]; then
@@ -342,7 +353,10 @@ else
   fi
   VERSION="${VERSION#v}"
 fi
-echo "[*] GUI version resolved as: ${VERSION}"
+
+# Sanitize version for RPM compatibility
+VERSION="$(sanitize_rpm_version "$VERSION")"
+echo "[*] GUI version resolved and sanitized as: ${VERSION}"
 
 # ===== Helpers for core/rules download (use RID_DIR for arch sync) =====================
 download_xray() {

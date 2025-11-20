@@ -4,6 +4,10 @@ Arch="$1"
 OutputPath="$2"
 Version="$3"
 
+# Sanitize version for Debian package (only numbers, dots, and tilde)
+# Convert v7.16.3-no-ad to 7.16.3~no.ad
+Version=$(echo "$Version" | sed 's/^[vV]//' | sed 's/-/~/1' | sed 's/-/./g')
+
 FileName="v2rayN-${Arch}.zip"
 wget -nv -O $FileName "https://github.com/2dust/v2rayN-core-bin/raw/refs/heads/master/$FileName"
 7z x $FileName
