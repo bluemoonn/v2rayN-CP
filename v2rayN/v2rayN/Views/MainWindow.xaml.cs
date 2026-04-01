@@ -8,7 +8,6 @@ namespace v2rayN.Views;
 public partial class MainWindow
 {
     private static Config _config;
-    private CheckUpdateView? _checkUpdateView;
     private BackupAndRestoreView? _backupAndRestoreView;
 
     public MainWindow()
@@ -22,9 +21,7 @@ public partial class MainWindow
         Closing += MainWindow_Closing;
         PreviewKeyDown += MainWindow_PreviewKeyDown;
         menuSettingsSetUWP.Click += MenuSettingsSetUWP_Click;
-        menuPromotion.Click += MenuPromotion_Click;
         menuClose.Click += MenuClose_Click;
-        menuCheckUpdate.Click += MenuCheckUpdate_Click;
         menuBackupAndRestore.Click += MenuBackupAndRestore_Click;
 
         ViewModel = new MainWindowViewModel(UpdateViewHandler);
@@ -161,7 +158,6 @@ public partial class MainWindow
             RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
         }
 
-        AddHelpMenuItem();
         WindowsManager.Instance.RegisterGlobalHotkey(_config, OnHotkeyHandler, null);
     }
 
@@ -313,11 +309,6 @@ public partial class MainWindow
         ShowHideWindow(false);
     }
 
-    private void MenuPromotion_Click(object sender, RoutedEventArgs e)
-    {
-        ProcUtils.ProcessStart($"{Utils.Base64Decode(Global.PromotionUrl)}?t={DateTime.Now.Ticks}");
-    }
-
     private void MenuSettingsSetUWP_Click(object sender, RoutedEventArgs e)
     {
         ProcUtils.ProcessStart(Utils.GetBinPath("EnableLoopback.exe"));
@@ -356,12 +347,6 @@ public partial class MainWindow
             return;
         }
         await ViewModel?.ScanImageResult(fileName);
-    }
-
-    private void MenuCheckUpdate_Click(object sender, RoutedEventArgs e)
-    {
-        _checkUpdateView ??= new CheckUpdateView();
-        DialogHost.Show(_checkUpdateView, "RootDialog");
     }
 
     private void MenuBackupAndRestore_Click(object sender, RoutedEventArgs e)
@@ -432,31 +417,6 @@ public partial class MainWindow
         else if (_config.UiItem.MainGirdOrientation == EGirdOrientation.Vertical)
         {
             ConfigHandler.SaveMainGirdHeight(_config, gridMain1.RowDefinitions[0].ActualHeight, gridMain1.RowDefinitions[2].ActualHeight);
-        }
-    }
-
-    private void AddHelpMenuItem()
-    {
-        var coreInfo = CoreInfoManager.Instance.GetCoreInfo();
-        foreach (var it in coreInfo
-            .Where(t => t.CoreType is not ECoreType.v2fly
-                        and not ECoreType.hysteria))
-        {
-            var item = new MenuItem()
-            {
-                Tag = it.Url.Replace(@"/releases", ""),
-                Header = string.Format(ResUI.menuWebsiteItem, it.CoreType.ToString().Replace("_", " ")).UpperFirstChar()
-            };
-            item.Click += MenuItem_Click;
-            menuHelp.Items.Add(item);
-        }
-    }
-
-    private void MenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is MenuItem item)
-        {
-            ProcUtils.ProcessStart(item.Tag.ToString());
         }
     }
 
