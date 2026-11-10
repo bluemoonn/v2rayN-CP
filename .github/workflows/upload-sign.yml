@@ -19,7 +19,7 @@ on:
         default: application/octet-stream
     secrets:
       GPG_PRIVATE_KEY:
-        required: true
+        required: false
 
 permissions:
   contents: write
@@ -36,15 +36,23 @@ jobs:
         path: dist
 
     - name: Import GPG private key
+      id: gpg
       shell: bash
       env:
         GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
       run: |
         set -euo pipefail
+        if [[ -z "$GPG_PRIVATE_KEY" ]]; then
+          echo "::notice::GPG_PRIVATE_KEY not set, skipping signing"
+          echo "enabled=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
         install -m 700 -d ~/.gnupg
         printf '%s' "$GPG_PRIVATE_KEY" | gpg --batch --import
+        echo "enabled=true" >> "$GITHUB_OUTPUT"
 
     - name: Sign release files
+      if: steps.gpg.outputs.enabled == 'true'
       shell: bash
       run: |
         set -euo pipefail
@@ -67,6 +75,7 @@ jobs:
         overwrite: true
 
     - name: Upload release signatures
+      if: steps.gpg.outputs.enabled == 'true'
       uses: svenstaro/upload-release-action@v2
       with:
         file: dist/${{ inputs.file_pattern }}.sig
