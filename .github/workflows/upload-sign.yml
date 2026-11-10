@@ -29,6 +29,20 @@ jobs:
   upload:
     runs-on: ubuntu-26.04
     steps:
+    - name: Ensure release exists on this commit
+      env:
+        GH_TOKEN: ${{ github.token }}
+        TAG: ${{ inputs.release_tag }}
+      run: |
+        # Create the release on the dispatched commit (not the default branch)
+        # so single-platform releases also get a correct tag. Several upload
+        # jobs may race here, so a failed create is fine if the release exists.
+        if ! gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+          gh release create "$TAG" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "$TAG" --notes "Built from ${GITHUB_REF_NAME}@${GITHUB_SHA}" --prerelease \
+            || gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null
+        fi
+
     - name: Download release artifact
       uses: actions/download-artifact@v8
       with:
