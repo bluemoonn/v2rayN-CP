@@ -235,6 +235,14 @@ apply_channel_or_keep() {
 }
 
 resolve_version() {
+  if [[ "${SKIP_CHECKOUT:-}" == "1" ]]; then
+    # CI on fork: build exactly the checked-out commit, never switch to another tag
+    VERSION="${VERSION_ARG:-$(git describe --tags --abbrev=0 2>/dev/null || echo '0.0.0')}"
+    VERSION="${VERSION#v}"
+    echo "[*] SKIP_CHECKOUT=1, building current tree as version: ${VERSION}"
+    return 0
+  fi
+
   if git rev-parse --git-dir >/dev/null 2>&1; then
     if [[ -n "${VERSION_ARG:-}" ]]; then
       local clean_ver="${VERSION_ARG#v}"

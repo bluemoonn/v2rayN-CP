@@ -12,8 +12,27 @@ permissions:
   contents: write
 
 jobs:
+  create-release:
+    if: inputs.release_tag != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create release on this commit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ inputs.release_tag }}
+        run: |
+          # Pre-create the release so its tag points at this branch's commit,
+          # not at the default branch (upload-release-action would use master).
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists"
+          else
+            gh release create "$TAG" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+              --title "$TAG" --notes "Built from ${GITHUB_REF_NAME}@${GITHUB_SHA}" --prerelease
+          fi
+
   public-key:
     if: inputs.release_tag != ''
+    needs: create-release
     uses: ./.github/workflows/pub-key.yml
     with:
       release_tag: ${{ inputs.release_tag }}
@@ -21,6 +40,7 @@ jobs:
       GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
   update:
+    needs: create-release
     runs-on: ubuntu-latest
     steps:
 
